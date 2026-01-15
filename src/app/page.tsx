@@ -74,6 +74,8 @@ type GameState = {
   location: string;
   journalPath: string;
 
+  node: "HUB" | "BOARD" | "WHISPER" | "CHECK" | "ROAD";
+
   sex?: string;
   name?: string;
   race?: { id: string; name: string; desc: string; bonuses: Partial<Stats>; weakness: string; worldImpact: string };
@@ -205,6 +207,7 @@ function makeInitialState(): GameState {
     phase: "SETTINGS",
     wear: "OFF",
     universe: null,
+    node: "HUB",
 
     day: 1,
     hour: 8,
@@ -569,6 +572,37 @@ export default function Page() {
       }
 
       // exploration
+            // === scene transitions (non-combat) ===
+      if (!s.enemy) {
+        if (s.node === "HUB") {
+          if (id === "1") s.node = "BOARD";
+          else if (id === "2") s.node = "WHISPER";
+          else if (id === "3") s.node = "CHECK";
+          return s;
+        }
+
+        if (s.node === "BOARD") {
+          if (id === "1") s.node = "ROAD";
+          else if (id === "3") s.node = "HUB";
+          return s;
+        }
+
+        if (s.node === "WHISPER") {
+          if (id === "3") s.node = "HUB";
+          return s;
+        }
+
+        if (s.node === "CHECK") {
+          if (id === "3") s.node = "HUB";
+          return s;
+        }
+
+        if (s.node === "ROAD") {
+          if (id === "3") s.node = "HUB";
+          return s;
+        }
+      }
+
       if (id === "1") {
         const roll = chanceCheck();
         addLog(s, "system", `Вы читаете доску. Проверка случая: ${roll}/100 → ${roll <= 25 ? "⚠️ подозрительная тень" : "тишина"}`);
